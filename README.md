@@ -14,3 +14,10 @@ There is a good article [here](https://rauwendaal.net/2014/06/14/rendering-a-scr
 4. These are passed onto the fragment shader.
 
 In this demo we will fill a buffer with values then bind to a texture to render to the screen.
+
+## Keys
+
+- Space : reset the canvas to white
+- a : toggle animation 
+- p : draw points mode
+- l : draw lines mode

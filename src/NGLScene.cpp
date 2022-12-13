@@ -8,7 +8,8 @@
 #include <QGuiApplication>
 #include <QMouseEvent>
 
-constexpr size_t TextureSize=1024;
+constexpr size_t TextureWidth=1024;
+constexpr size_t TextureHeight=720;
 
 NGLScene::NGLScene()
 {
@@ -43,14 +44,16 @@ void NGLScene::initializeGL()
   // Now generate a texture
   glGenTextures(1, &m_textureID);
   // Generate our buffer for the texture data
-  m_buffer= std::make_unique<uint32_t []>(TextureSize*TextureSize);
+  m_buffer= std::make_unique<uint32_t []>(TextureWidth*TextureHeight);
   clearBuffer();
   updateTextureBuffer();
   // create random generator for image size
-  auto gen=std::uniform_int_distribution<>(0,TextureSize-1);
-  ngl::Random::addIntGenerator("image_offset",gen);
-  auto colour=std::uniform_int_distribution<>(0,255);
+  auto width=std::uniform_int_distribution<>(0,TextureWidth-1);
+  ngl::Random::addIntGenerator("width",width);
+  auto height=std::uniform_int_distribution<>(0,TextureHeight-1);
+  ngl::Random::addIntGenerator("height",height);
 
+  auto colour=std::uniform_int_distribution<>(0,255);
   ngl::Random::addIntGenerator("colour",colour);
   startTimer(10);
   
@@ -63,7 +66,7 @@ uint32_t NGLScene::encodePixel(unsigned char _r, unsigned char _g, unsigned char
 void NGLScene::clearBuffer()
 {
   // clear screen to white  
-  for(size_t i=0; i<TextureSize*TextureSize; ++i)
+  for(size_t i=0; i<TextureWidth*TextureHeight; ++i)
   {
     m_buffer[i]=encodePixel(255,255,255);
   }
@@ -71,8 +74,10 @@ void NGLScene::clearBuffer()
 
 void NGLScene::setPixel(int _x, int _y,unsigned char _r, unsigned char _g, unsigned char _b) noexcept
 {
+  // if(_x>TextureWidth || _y >TextureHeight )
+  //   return;
   // easier as we are only using square at  present
-  size_t offset=(_y*TextureSize)+_x;
+  size_t offset=(_y*TextureWidth)+_x;
   auto pixel=encodePixel(_r,_g,_b);
   m_buffer[offset]=pixel;
 }
@@ -106,7 +111,7 @@ void NGLScene::drawLine(int _x0, int _y0, int _x1, int _y1,unsigned char _r, uns
 void NGLScene::updateTextureBuffer()
 {
   glBindTexture(GL_TEXTURE_2D, m_textureID);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, TextureSize, TextureSize, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_buffer.get());
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, TextureWidth, TextureHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_buffer.get());
   glGenerateMipmap(GL_TEXTURE_2D); //  Allocate the mipmaps
 }
 
@@ -172,15 +177,14 @@ void NGLScene::keyPressEvent(QKeyEvent *_event)
 
 void NGLScene::randomPixels()
 {
-  auto loopEnd=ngl::Random::getIntFromGeneratorName("image_offset");
   auto r=ngl::Random::getIntFromGeneratorName("colour");
   auto g=ngl::Random::getIntFromGeneratorName("colour");
   auto b=ngl::Random::getIntFromGeneratorName("colour");
 
-  for(int i=0; i<loopEnd; ++i)
+  for(int i=0; i<1000; ++i)
   {
-    auto x=ngl::Random::getIntFromGeneratorName("image_offset");
-    auto y=ngl::Random::getIntFromGeneratorName("image_offset");
+    auto x=ngl::Random::getIntFromGeneratorName("width");
+    auto y=ngl::Random::getIntFromGeneratorName("height");
     setPixel(x,y,r,g,b);
   }
     updateTextureBuffer();
@@ -195,10 +199,10 @@ void NGLScene::randomLines()
   {
   auto r=ngl::Random::getIntFromGeneratorName("colour");
   auto g=ngl::Random::getIntFromGeneratorName("colour");
-  auto b=ngl::Random::getIntFromGeneratorName("colour");  auto x0=ngl::Random::getIntFromGeneratorName("image_offset");
-    auto y0=ngl::Random::getIntFromGeneratorName("image_offset");
-    auto x1=ngl::Random::getIntFromGeneratorName("image_offset");
-    auto y1=ngl::Random::getIntFromGeneratorName("image_offset");
+  auto b=ngl::Random::getIntFromGeneratorName("colour");  auto x0=ngl::Random::getIntFromGeneratorName("width");
+    auto y0=ngl::Random::getIntFromGeneratorName("height");
+    auto x1=ngl::Random::getIntFromGeneratorName("width");
+    auto y1=ngl::Random::getIntFromGeneratorName("height");
     drawLine(x0,y0,x1,y1,r,g,b);
   }
     updateTextureBuffer();
